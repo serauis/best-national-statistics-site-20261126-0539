@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NusaStat — Portal Statistik Indonesia</title>
+<meta name="description" content="Portal statistik nasional Indonesia: penduduk, ekonomi, ketenagakerjaan, kemiskinan dan pembangunan manusia, dengan sumber dan tahun pada setiap angka.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <a class="brand" href="#/">
+      <span class="brand-mark" aria-hidden="true">NS</span>
+      <span class="brand-name">NusaStat</span>
+      <span class="brand-sub">Portal Statistik Indonesia</span>
+    </a>
+    <nav class="mainnav" id="mainnav" aria-label="Navigasi utama">
+      <a href="#/" data-route="">Beranda</a>
+      <a href="#/indikator" data-route="indikator">Indikator</a>
+      <a href="#/provinsi" data-route="provinsi">Provinsi</a>
+      <a href="#/ekonomi" data-route="ekonomi">Ekonomi</a>
+      <a href="#/penduduk" data-route="penduduk">Penduduk</a>
+      <a href="#/metodologi" data-route="metodologi">Metodologi</a>
+    </nav>
+    <label class="yearpick" title="Tahun data">
+      Tahun
+      <select id="yearSelect" aria-label="Pilih tahun data">
+        <option value="2024" selected>2024</option>
+        <option value="2023">2023</option>
+        <option value="2022">2022</option>
+      </select>
+    </label>
+  </div>
+</header>
+
+<main id="app" class="wrap"></main>
+
+<footer class="sitefoot">
+  <div class="wrap foot-in">
+    <div>
+      <strong>NusaStat</strong> — angka-angka Indonesia, dijelaskan untuk semua orang.
+      Bukan situs resmi BPS; seluruh angka bersumber dari publikasi Badan Pusat Statistik
+      dan dicantumkan sumber beserta tahunnya di setiap angka.
+    </div>
+    <div class="foot-links">
+      <a href="#/metodologi">Sumber &amp; metodologi</a>
+      <a href="#/indikator">Semua indikator</a>
+      <a href="#/provinsi">Provinsi</a>
+    </div>
+    <div class="foot-note">Data terakhir diperbarui: November 2026 &middot; Dibangun tanpa jaringan — semua berkas ada di situs ini.</div>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script src="provinces.js"></script>
+<script src="charts.js"></script>
+<script src="views.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
