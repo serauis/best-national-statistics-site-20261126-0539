@@ -24,12 +24,17 @@ if (existsSync(join(here, 'screenshots'))) {
 // Caps mirror the gate so a local run refuses what the scorer would refuse:
 // at most 4 screenshots, each at most 256 KiB; app/ at most 993 files and
 // directories and 16 MiB; dossier text capped at 160 KiB.
-writeFileSync(
-  join(out, 'dossier.json'),
-  buildDossier(out, {
-    text_max_bytes: 163840,
-    screenshots: { max: 4, max_bytes: 262144 },
-    app_max_files: 993,
-    app_max_bytes: 16777216,
-  }),
-);
+const dossierPath = join(out, 'dossier.json');
+const dossier = buildDossier(out, {
+  text_max_bytes: 163840,
+  screenshots: { max: 4, max_bytes: 262144 },
+  app_max_files: 993,
+  app_max_bytes: 16777216,
+});
+writeFileSync(dossierPath, dossier);
+
+// A one-line receipt for the builder's log: what was handed in and how big.
+const dossierText = Buffer.from(dossier).toString('utf8');
+const totals = dossierText.split('\n').find((line) => line.startsWith('Totals:')) ?? 'Totals: (unavailable)';
+console.log(`NusaStat entry written to ${out} (${dossier.length} byte dossier)`);
+console.log(totals);

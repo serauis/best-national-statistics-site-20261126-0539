@@ -3,13 +3,14 @@
 // built from the numbers in data.js / provinces.js.
 
 window.NUSA_CHARTS = (function () {
-  var NS = 'http://www.w3.org/2000/svg';
+  // (No xmlns attribute: the HTML parser assigns the SVG namespace
+  // automatically when these strings are set as innerHTML.)
 
   function esc(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
   function svgOpen(w, h, label) {
-    return '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" role="img" aria-label="' + esc(label) + '" xmlns="' + NS + '">';
+    return '<svg viewBox="0 0 ' + w + ' ' + h + '" width="100%" role="img" aria-label="' + esc(label) + '">';
   }
 
   // Line chart: points = [{y, v}], with value labels and a zero line.
@@ -17,30 +18,44 @@ window.NUSA_CHARTS = (function () {
     opts = opts || {};
     var w = opts.w || 640, h = opts.h || 260, padL = 46, padR = 14, padT = 18, padB = 30;
     var vals = points.map(function (p) { return p.v; });
-    var min = Math.min.apply(null, vals.concat([0]));
+    var min = Math.min.apply(null, vals);
     var max = Math.max.apply(null, vals);
+    // Baseline: include zero when the series crosses it or spans widely.
+    // When all values are positive and tightly clustered (e.g. a province
+    // population trend), zoom to the data range so the slope is visible.
+    if (min >= 0 && (max - min) / max >= 0.1) min = 0;
+    else if (min >= 0 && (max - min) / max < 0.1) min = min - (max - min);
     if (max === min) max = min + 1;
     var iw = w - padL - padR, ih = h - padT - padB;
     function X(i) { return padL + (points.length === 1 ? iw / 2 : (i / (points.length - 1)) * iw); }
     function Y(v) { return padT + ih - ((v - min) / (max - min)) * ih; }
     var s = svgOpen(w, h, opts.label || 'Grafik garis');
     s += '<line x1="' + padL + '" y1="' + Y(0) + '" x2="' + (w - padR) + '" y2="' + Y(0) + '" stroke="#94a3b8" stroke-width="1"/>';
-    // gridlines at min / mid / max
+    // Gridlines at min / mid / max, unlabeled: the point values already
+    // carry the numbers, and axis labels used to collide with them.
     [min, (min + max) / 2, max].forEach(function (g) {
       s += '<line x1="' + padL + '" y1="' + Y(g) + '" x2="' + (w - padR) + '" y2="' + Y(g) + '" stroke="#e2e8f0" stroke-width="1"/>';
-      s += '<text x="' + (padL - 6) + '" y="' + (Y(g) + 4) + '" text-anchor="end" font-size="11" fill="#64748b">' + fmtAxis(g) + '</text>';
     });
     var d = points.map(function (p, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(p.v).toFixed(1); }).join(' ');
     s += '<path d="' + d + '" fill="none" stroke="' + (opts.color || '#0f766e') + '" stroke-width="2.5" stroke-linejoin="round"/>';
     points.forEach(function (p, i) {
       s += '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(p.v).toFixed(1) + '" r="3.5" fill="#fff" stroke="' + (opts.color || '#0f766e') + '" stroke-width="2"/>';
-      s += '<text x="' + X(i).toFixed(1) + '" y="' + (Y(p.v) - 9).toFixed(1) + '" text-anchor="middle" font-size="11" font-weight="600" fill="#334155">' + fmtAxis(p.v) + '</text>';
-      s += '<text x="' + X(i).toFixed(1) + '" y="' + (h - 8) + '" text-anchor="middle" font-size="11" fill="#64748b">' + p.y + '</text>';
+      // Stagger value labels above/below the point so neighbours never collide;
+      // the series minimum always labels above, so it never hits the year row.
+      // Clamp label x so first/last labels are never clipped at the edges.
+      var ly = (p.v === min || i % 2 === 0) ? (Y(p.v) - 9) : (Y(p.v) + 20);
+      var lx = Math.max(30, Math.min(w - 30, X(i)));
+      s += '<text x="' + lx.toFixed(1) + '" y="' + ly.toFixed(1) + '" text-anchor="middle" font-size="11" font-weight="600" fill="#334155">' + fmtAxis(p.v) + '</text>';
+      s += '<text x="' + lx.toFixed(1) + '" y="' + (h - 8) + '" text-anchor="middle" font-size="11" fill="#64748b">' + p.y + '</text>';
     });
     return s + '</svg>';
   }
   function fmtAxis(v) {
-    return (Math.abs(v) < 10 ? v.toFixed(2) : v.toFixed(0)).replace('.', ',');
+    var s;
+    if (Math.abs(v) < 10) s = v.toFixed(2);
+    else if (Number.isInteger(v)) s = v.toFixed(0);
+    else s = v.toFixed(1);
+    return s.replace('.', ',');
   }
 
   // Horizontal bar chart: rows = [{name, v, suffix}].
@@ -55,7 +70,13 @@ window.NUSA_CHARTS = (function () {
       var bw = Math.max(2, ((w - padL - padR) * r.v) / max);
       s += '<text x="' + (padL - 10) + '" y="' + (y + 17) + '" text-anchor="end" font-size="12" fill="#334155">' + esc(r.name) + '</text>';
       s += '<rect x="' + padL + '" y="' + (y + 4) + '" width="' + bw.toFixed(1) + '" height="18" rx="4" fill="' + (r.color || '#0f766e') + '"/>';
-      s += '<text x="' + (padL + bw + 8).toFixed(1) + '" y="' + (y + 18) + '" font-size="12" font-weight="700" fill="#0f172a">' + esc(r.label) + '</text>';
+      // Value label goes inside the bar's end when it would run past the edge.
+      var lx = padL + bw + 8;
+      if (lx + r.label.length * 6.8 > w) {
+        s += '<text x="' + (padL + bw - 8).toFixed(1) + '" y="' + (y + 18) + '" text-anchor="end" font-size="12" font-weight="700" fill="#ffffff">' + esc(r.label) + '</text>';
+      } else {
+        s += '<text x="' + lx.toFixed(1) + '" y="' + (y + 18) + '" font-size="12" font-weight="700" fill="#0f172a">' + esc(r.label) + '</text>';
+      }
     });
     return s + '</svg>';
   }

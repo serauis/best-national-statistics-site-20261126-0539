@@ -242,7 +242,7 @@ window.NUSA_VIEWS = (function () {
     } else {
       title = 'Perdagangan luar negeri, 2022–2024 (miliar USD)';
       var rows = [2022, 2023, 2024].map(function (y) {
-        return { name: String(y), v: D.byId('ekspor').v[y], label: 'Ekspor ' + D.byId('ekspor').v[y] };
+        return { name: String(y), v: D.byId('ekspor').v[y], label: 'Ekspor ' + D.fmtNum(D.byId('ekspor').v[y], 1) };
       });
       chart = C.barChart(rows, { label: 'Nilai ekspor 2022 sampai 2024' });
       note = 'Ekspor 2024: 264,7 miliar USD; impor 233,7 miliar USD; surplus perdagangan 31,0 miliar USD (BPS).';

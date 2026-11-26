@@ -89,7 +89,7 @@ h3 { font-size: 1.05rem; margin: 0 0 8px; }
 .kpi-val { font-size: 1.85rem; font-weight: 800; margin: 0; letter-spacing: -0.02em; line-height: 1.1; }
 .kpi-unit { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
 .kpi-sub { font-size: 0.82rem; color: var(--muted); margin: 8px 0 0; }
-.delta { color: var(--accent); font-weight: 700; }
+.delta { color: var(--accent); font-weight: 700; display: block; }
 .kpi-src { color: var(--muted); }
 
 /* Family strip */
