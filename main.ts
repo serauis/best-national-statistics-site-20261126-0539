@@ -34,7 +34,8 @@ const dossier = buildDossier(out, {
 writeFileSync(dossierPath, dossier);
 
 // A one-line receipt for the builder's log: what was handed in and how big.
-const dossierText = Buffer.from(dossier).toString('utf8');
+// The dossier is JSON; its "text" field holds the Load block with Totals.
+const dossierText = JSON.parse(Buffer.from(dossier).toString('utf8')).text ?? '';
 const totals = dossierText.split('\n').find((line) => line.startsWith('Totals:')) ?? 'Totals: (unavailable)';
 console.log(`NusaStat entry written to ${out} (${dossier.length} byte dossier)`);
 console.log(totals);
